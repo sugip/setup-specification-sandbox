@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../schema/tenant.schema.json
+id: fishmonger
+name: 魚屋さん
+
+optional_fields:
+  field_1:
+    name: 生食可否
+
+features:
+  search.freeword.scope.optional_field_1: true
+  search.freeword.method.support_text:
+    enabled: true
+    params:
+      text: 早く食べてね
+  search.filter.category.optional_field_1: true
+  search.filter.purchase_history: true
+  product_info.list_result.basic_info.optional_field_1: true
+  product_info.list_result.basic_info.optional_field_1.detail:
+    enabled: true
+    params:
+      text: 生食可能な場合でも2日以上経っている場合は加熱してね

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>セットアップ仕様</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --border: #e2e2dc;
+    --group: #efefea; --accent: #2f5bd3;
+    --on-bg: #e3f4e8; --on-fg: #1d6b39; --off-bg: #f0f0ed; --off-fg: #8a8a84;
+    --req-bg: #e6ecfb; --req-fg: #2f4fa8; --custom-bg: #fdf0dc; --custom-fg: #8a5300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161615; --surface: #1f1f1d; --text: #ecece8; --muted: #9a9a93; --border: #34342f;
+      --group: #282825; --accent: #7d9cf0;
+      --on-bg: #17361f; --on-fg: #8fd8a6; --off-bg: #2a2a27; --off-fg: #85857e;
+      --req-bg: #1d2a4a; --req-fg: #a9bdf5; --custom-bg: #3a2a10; --custom-fg: #f0c27a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Hiragino Sans", sans-serif; }
+  header { padding: 20px 16px 8px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 32px 0 12px; }
+  .meta { color: var(--muted); font-size: 12px; }
+  main { padding: 0 16px 48px; }
+  .controls { position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 12px 0; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; border-bottom: 1px solid var(--border); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 4px 12px; cursor: pointer; font: inherit; }
+  .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .linkbtn { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; padding: 0; }
+  input[type="search"] { font: inherit; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); min-width: 180px; }
+  label { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
+  .table-wrap { overflow-x: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  thead th { background: var(--surface); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  th.feature-col, td.feature-col { position: sticky; left: 0; background: var(--surface); min-width: 220px; z-index: 1; }
+  tr.group td { background: var(--group); font-weight: 600; }
+  tr.group td.feature-col { background: var(--group); }
+  td.def { color: var(--muted); font-size: 12px; white-space: pre-wrap; min-width: 140px; }
+  td.tenant { min-width: 150px; }
+  .id { display: block; color: var(--muted); font: 11px ui-monospace, monospace; font-weight: 400; }
+  .badge { display: inline-block; border-radius: 4px; padding: 0 6px; font-size: 12px; font-weight: 600; }
+  .s-on { background: var(--on-bg); color: var(--on-fg); }
+  .s-off { background: var(--off-bg); color: var(--off-fg); }
+  .s-required { background: var(--req-bg); color: var(--req-fg); }
+  .s-na { color: var(--off-fg); }
+  .detail { font-size: 12px; white-space: pre-wrap; margin-top: 2px; }
+  .custom { background: var(--custom-bg); color: var(--custom-fg); border-radius: 4px; padding: 2px 6px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+  .card h3 { margin: 0 0 8px; font-size: 15px; }
+  .card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+  .card dt { color: var(--muted); }
+  .card dd { margin: 0; }
+  .card ul { margin: 4px 0 0; padding-left: 18px; font-size: 13px; }
+  .empty { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>セットアップ仕様</h1>
+  <div class="meta" id="meta"></div>
+</header>
+<main>
+  <div class="controls">
+    <div class="chips" id="chips"></div>
+    <button class="linkbtn" id="select-all" type="button">すべて選択</button>
+    <input type="search" id="query" placeholder="機能名・ID・設定値で絞り込み">
+    <label><input type="checkbox" id="diff-only"> テナント間で差がある行のみ</label>
+    <label><input type="checkbox" id="show-def" checked> プロダクト定義を表示</label>
+  </div>
+  <div class="table-wrap"><table id="matrix"></table></div>
+  <h2>テナント別の任意項目・カスタマイズ</h2>
+  <div class="cards" id="cards"></div>
+</main>
+<script>
+const SPEC = /*__SPEC_DATA__*/null;
+const STATE_LABEL = { required: '必須', on: 'ON', off: 'OFF', na: '—' };
+
+const el = (tag, attrs = {}, ...children) => {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') node.className = v;
+    else node.setAttribute(k, v);
+  }
+  for (const c of children.flat()) if (c != null && c !== '') node.append(c);
+  return node;
+};
+
+// 選択中のテナントは URL の #tenants=a,b に保存し、リンクで共有できるようにする
+const allIds = SPEC.tenants.map((t) => t.id);
+const fromHash = new URLSearchParams(location.hash.slice(1)).get('tenants');
+let selected = new Set(fromHash ? fromHash.split(',').filter((id) => allIds.includes(id)) : allIds);
+if (!selected.size) selected = new Set(allIds);
+
+const $ = (id) => document.getElementById(id);
+$('meta').textContent = `テナント ${SPEC.tenants.length} 件 / 生成 ${new Date(SPEC.generatedAt).toLocaleString('ja-JP')}`;
+
+function renderChips() {
+  $('chips').replaceChildren(...SPEC.tenants.map((t) => {
+    const chip = el('button', { class: 'chip', type: 'button', 'aria-pressed': String(selected.has(t.id)) }, t.name);
+    chip.onclick = () => {
+      if (selected.has(t.id)) { if (selected.size > 1) selected.delete(t.id); }
+      else selected.add(t.id);
+      update();
+    };
+    return chip;
+  }));
+}
+
+const fieldName = (tenant, row) => row.optionalField && tenant.optionalFields[row.optionalField]?.name;
+
+function tenantCell(tenant, row) {
+  const f = tenant.features[row.id];
+  const name = fieldName(tenant, row);
+  return el('td', { class: 'tenant' },
+    el('span', { class: `badge s-${f.state}` }, STATE_LABEL[f.state]),
+    name && f.state !== 'off' ? el('div', { class: 'detail' }, `項目名: ${name}`) : null,
+    Object.values(f.params).map((v) => el('div', { class: 'detail' }, v)),
+    f.note ? el('div', { class: 'detail' }, `備考: ${f.note}`) : null,
+    (f.customizations ?? []).map((c) => el('div', { class: 'detail custom' }, `カスタマイズ: ${c}`)),
+  );
+}
+
+const signature = (tenant, row) => {
+  const f = tenant.features[row.id];
+  return JSON.stringify([f.state, f.params, f.note, f.customizations, fieldName(tenant, row)]);
+};
+
+const constraintText = (c) => [c?.functional, c?.ui && `UI: ${c.ui}`].filter(Boolean).join('\n');
+
+function renderMatrix() {
+  const tenants = SPEC.tenants.filter((t) => selected.has(t.id));
+  const showDef = $('show-def').checked;
+  const diffOnly = $('diff-only').checked;
+  const query = $('query').value.trim().toLowerCase();
+
+  const visible = new Set();
+  for (const row of SPEC.rows) {
+    if (row.kind !== 'feature') continue;
+    if (diffOnly && new Set(tenants.map((t) => signature(t, row))).size <= 1) continue;
+    if (query) {
+      const haystack = [row.id, row.label, ...tenants.map((t) => signature(t, row))].join(' ').toLowerCase();
+      if (!haystack.includes(query)) continue;
+    }
+    visible.add(row.id);
+  }
+  // 表示する機能を含むグループだけを残す
+  const groupVisible = (group) => [...visible].some((id) => id.startsWith(`${group.id}.`));
+
+  const defCols = showDef ? ['区分', '制約事項', '必要なデータ'] : [];
+  const head = el('thead', {}, el('tr', {},
+    el('th', { class: 'feature-col' }, '機能'),
+    defCols.map((c) => el('th', {}, c)),
+    tenants.map((t) => el('th', {}, t.name)),
+  ));
+  const colCount = 1 + defCols.length + tenants.length;
+
+  const body = el('tbody');
+  for (const row of SPEC.rows) {
+    const indent = { style: `padding-left:${10 + row.depth * 16}px` };
+    if (row.kind === 'group') {
+      if (!groupVisible(row)) continue;
+      const constraints = constraintText(row.constraints);
+      body.append(el('tr', { class: 'group' },
+        el('td', { class: 'feature-col', ...indent }, row.label),
+        el('td', { colspan: colCount - 1, class: 'def' }, showDef ? constraints : ''),
+      ));
+      continue;
+    }
+    if (!visible.has(row.id)) continue;
+    const field = row.optionalField && SPEC.optionalFields[row.optionalField];
+    body.append(el('tr', {},
+      el('td', { class: 'feature-col', ...indent }, row.label, el('span', { class: 'id' }, row.id)),
+      showDef ? [
+        el('td', { class: 'def' }, row.toggle === 'required' ? '必須' : 'ON/OFF'),
+        el('td', { class: 'def' }, [constraintText(row.constraints), row.note, field?.note].filter(Boolean).join('\n')),
+        el('td', { class: 'def' }, row.data ?? field?.data ?? ''),
+      ] : [],
+      tenants.map((t) => tenantCell(t, row)),
+    ));
+  }
+  if (!visible.size) body.append(el('tr', {}, el('td', { colspan: colCount, class: 'empty' }, '該当する機能はありません')));
+  $('matrix').replaceChildren(head, body);
+}
+
+function renderCards() {
+  $('cards').replaceChildren(...SPEC.tenants.filter((t) => selected.has(t.id)).map((t) => {
+    const fields = Object.entries(t.optionalFields);
+    return el('section', { class: 'card' },
+      el('h3', {}, t.name, el('span', { class: 'id' }, t.id)),
+      t.description ? el('p', { class: 'detail' }, t.description) : null,
+      el('strong', {}, '任意項目'),
+      fields.length
+        ? el('dl', {}, fields.flatMap(([key, f]) => [
+            el('dt', {}, SPEC.optionalFields[key]?.label ?? key),
+            el('dd', {}, f.name, f.values ? `（${f.values.join('・')}）` : '', f.note ? el('div', { class: 'detail' }, f.note) : null),
+          ]))
+        : el('div', { class: 'empty' }, 'なし'),
+      el('strong', {}, 'カスタマイズ'),
+      t.customizations.length
+        ? el('ul', {}, t.customizations.map((c) => el('li', {}, c.description, el('span', { class: 'id' }, c.feature))))
+        : el('div', { class: 'empty' }, 'なし'),
+    );
+  }));
+}
+
+function update() {
+  const ids = allIds.filter((id) => selected.has(id));
+  history.replaceState(null, '', ids.length === allIds.length ? location.pathname : `#tenants=${ids.join(',')}`);
+  renderChips();
+  renderMatrix();
+  renderCards();
+}
+
+$('select-all').onclick = () => { selected = new Set(allIds); update(); };
+for (const id of ['query', 'diff-only', 'show-def']) $(id).addEventListener('input', renderMatrix);
+update();
+</script>
+</body>
+</html>

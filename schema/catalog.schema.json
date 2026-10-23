@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "catalog.schema.json",
+  "title": "機能カタログ",
+  "description": "標準プロダクトが提供する機能の最大値を定義する。テナント固有の値はここに書かない。",
+  "type": "object",
+  "required": ["optional_fields", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "optional_fields": {
+      "description": "プロダクトが提供する任意項目の枠。項目名はテナントごとに tenants/*.yaml で定義する。",
+      "type": "object",
+      "propertyNames": { "pattern": "^field_[0-9]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "data"],
+        "additionalProperties": false,
+        "properties": {
+          "label": { "type": "string" },
+          "note": { "type": "string", "description": "補足（想定用途など）" },
+          "data": { "type": "string", "description": "必要なデータ" }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "親の id と . で連結したものが機能IDになる。一度決めたら変更しない。"
+    },
+    "constraints": {
+      "type": "object",
+      "description": "トレランス（制約事項）",
+      "additionalProperties": false,
+      "properties": {
+        "functional": { "type": "string", "description": "機能面" },
+        "ui": { "type": "string", "description": "UI面" }
+      }
+    },
+    "node": {
+      "oneOf": [{ "$ref": "#/$defs/group" }, { "$ref": "#/$defs/feature" }]
+    },
+    "group": {
+      "type": "object",
+      "description": "機能の分類（ユーザー体験 / 提供機能 / 分類）。on/off は持たない。",
+      "required": ["id", "label", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string" },
+        "note": { "type": "string" },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/node" }
+        }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "description": "テナントごとに on/off を判断する単位。",
+      "required": ["id", "label", "toggle"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string" },
+        "note": { "type": "string" },
+        "toggle": {
+          "enum": ["required", "optional"],
+          "description": "required: 常に有効（親機能がある場合は親が有効なら有効） / optional: テナントが ON/OFF を選択（既定は OFF）"
+        },
+        "constraints": { "$ref": "#/$defs/constraints" },
+        "data": { "type": "string", "description": "必要なデータ" },
+        "optional_field": {
+          "type": "string",
+          "pattern": "^field_[0-9]+$",
+          "description": "この機能が使う任意項目。ON にするテナントはその任意項目を定義する必要がある。"
+        },
+        "params": {
+          "type": "object",
+          "description": "ON にしたテナントが設定する値",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" },
+          "additionalProperties": { "$ref": "#/$defs/param" }
+        },
+        "children": {
+          "type": "array",
+          "description": "level2 機能。親機能が有効な場合のみ有効にできる。",
+          "items": { "$ref": "#/$defs/feature" }
+        }
+      }
+    },
+    "param": {
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string" },
+        "required": { "type": "boolean", "default": false },
+        "max_length": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

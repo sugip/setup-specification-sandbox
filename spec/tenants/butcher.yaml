@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../schema/tenant.schema.json
+id: butcher
+name: 肉屋さん
+
+optional_fields:
+  field_1:
+    name: 種類
+    values: [鳥, 豚, 牛]
+
+features:
+  search.freeword.scope.optional_field_1: true
+  search.filter.category.optional_field_1: true
+  search.filter.purchase_history: true
+  product_info.list_result.basic_info.optional_field_1: true
+  product_info.list_result.basic_info.optional_field_1.detail:
+    enabled: true
+    params:
+      text: |-
+        鳥：鳥さんのお肉
+        豚：豚さんのお肉
+        牛：牛さんのお肉

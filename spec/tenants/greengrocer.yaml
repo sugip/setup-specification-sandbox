@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../schema/tenant.schema.json
+id: greengrocer
+name: 八百屋さん
+
+features:
+  search.freeword.method.support_text:
+    enabled: true
+    params:
+      text: どれも新鮮だよ。美味しいよ
+  search.filter.purchase_history: true
+
+customizations:
+  - feature: product_info.list_result.basic_info.price
+    description: 項目名を「定価」とする
