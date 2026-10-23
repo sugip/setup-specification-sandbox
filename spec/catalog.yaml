@@ -1,0 +1,162 @@
+# yaml-language-server: $schema=../schema/catalog.schema.json
+#
+# 機能カタログ（標準プロダクトの最大値）
+# 機能IDは親の id を . で連結したもの（例: search.freeword.scope.product_number）。
+# 機能IDはテナント設定から参照されるため、一度決めたら変更しない。
+
+optional_fields:
+  field_1:
+    label: 任意項目1
+    note: 商品種別・産地など
+    data: 商品任意項目データ1
+  field_2:
+    label: 任意項目2
+    note: 商品種別・産地など
+    data: 商品任意項目データ2
+  field_3:
+    label: 任意項目3
+    note: 商品種別・産地など
+    data: 商品任意項目データ3
+
+items:
+  - id: search
+    label: 検索することができる
+    items:
+      - id: freeword
+        label: フリーワード
+        constraints:
+          ui: 所定のレイアウト
+        items:
+          - id: scope
+            label: 検索範囲
+            constraints:
+              functional: 任意項目のうち3項目まで
+            items:
+              - id: product_number
+                label: 商品番号
+                toggle: required
+                data: 商品番号データ
+              - id: product_name
+                label: 商品名称
+                toggle: required
+                data: 商品名称データ
+              - id: optional_field_1
+                label: 任意項目1
+                toggle: optional
+                optional_field: field_1
+              - id: optional_field_2
+                label: 任意項目2
+                toggle: optional
+                optional_field: field_2
+              - id: optional_field_3
+                label: 任意項目3
+                toggle: optional
+                optional_field: field_3
+          - id: method
+            label: 検索方法
+            items:
+              - id: and_search
+                label: アンド検索
+                toggle: required
+                constraints:
+                  functional: |-
+                    スペースによるアンド検索
+                    商品番号と名称は必須、任意項目はON/OFF
+                    35文字以内。半角全角
+              - id: partial_match
+                label: 部分一致検索
+                toggle: required
+              - id: placeholder
+                label: プレースホルダー
+                toggle: required
+                constraints:
+                  functional: 「商品番号・商品名称を入力」
+              - id: support_text
+                label: サポートテキスト
+                toggle: optional
+                constraints:
+                  functional: 検索フォームの下部に表示する任意の文言を設定可能
+                params:
+                  text:
+                    label: 表示する文言
+                    required: true
+      - id: filter
+        label: フィルタ
+        items:
+          - id: category
+            label: カテゴリ
+            items:
+              - id: optional_field_1
+                label: 任意項目1
+                toggle: optional
+                optional_field: field_1
+              - id: optional_field_2
+                label: 任意項目2
+                toggle: optional
+                optional_field: field_2
+              - id: optional_field_3
+                label: 任意項目3
+                toggle: optional
+                optional_field: field_3
+          - id: purchase_history
+            label: 購入履歴有無
+            toggle: optional
+
+  - id: product_info
+    label: 商品の情報を確認できる
+    items:
+      - id: list_result
+        label: リスト検索結果
+        items:
+          - id: listing
+            label: 一覧表示
+            items:
+              - id: hit_count
+                label: 検索ヒット数
+                toggle: required
+              - id: pagination
+                label: ページネーション
+                toggle: required
+              - id: sort_order
+                label: 表示順制御
+                toggle: required
+          - id: basic_info
+            label: 基本情報
+            items:
+              - id: product_number
+                label: 商品番号
+                toggle: required
+              - id: product_name
+                label: 商品名称
+                toggle: required
+              - id: price
+                label: 販売価格
+                toggle: required
+              - id: stock
+                label: 在庫数
+                toggle: required
+              - id: optional_field_1
+                label: 任意項目1
+                toggle: optional
+                optional_field: field_1
+                children: &optional_field_levels
+                  - id: value
+                    label: レベル1（値）
+                    toggle: required
+                  - id: detail
+                    label: レベル2（詳細説明）
+                    toggle: optional
+                    params:
+                      text:
+                        label: 詳細説明
+                        required: true
+              - id: optional_field_2
+                label: 任意項目2
+                toggle: optional
+                optional_field: field_2
+                children: *optional_field_levels
+              - id: optional_field_3
+                label: 任意項目3
+                toggle: optional
+                optional_field: field_3
+                children: *optional_field_levels

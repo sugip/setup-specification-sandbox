@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tenant.schema.json",
+  "title": "テナント設定",
+  "description": "1テナント1ファイル。標準プロダクトとの差分（ON にする任意機能、任意項目の定義、カスタマイズ）だけを書く。",
+  "type": "object",
+  "required": ["id", "name"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "ファイル名（拡張子なし）と一致させる"
+    },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "optional_fields": {
+      "description": "このテナントで使う任意項目の定義",
+      "type": "object",
+      "propertyNames": { "pattern": "^field_[0-9]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "description": "画面に表示する項目名" },
+          "values": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "取りうる値（決まっている場合）"
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "features": {
+      "description": "キーは機能ID。書かれていない任意機能は OFF。必須機能は書かない。",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$" },
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "boolean" },
+          {
+            "type": "object",
+            "required": ["enabled"],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "params": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "note": { "type": "string", "description": "備考" }
+            }
+          }
+        ]
+      }
+    },
+    "customizations": {
+      "description": "標準プロダクトの範囲外の個別対応",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["feature", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "feature": { "type": "string", "description": "対象の機能ID" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}
